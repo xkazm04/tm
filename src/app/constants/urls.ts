@@ -1,0 +1,1 @@
+export const supaUrl = process.env.SUPABASE_URL

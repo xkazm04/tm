@@ -112,6 +112,7 @@ const TaskEdit = ({ task }: Props) => {
   };
 
   return <>
+    {isAdmin && <>
     <ContextMenuItem
       onSelect={() => {
         const content = window.prompt('Edit task title:', task.title);
@@ -130,14 +131,16 @@ const TaskEdit = ({ task }: Props) => {
     </ContextMenuItem>
 
     <ContextMenuSeparator />
+    </>}
 
     {renderStateTransitionOptions()}
 
-    <ContextMenuSeparator />
+    
 
     {/* Admin/assigned user options */}
-    {(isAdmin || isAssignedToMe) && (
+    {isAdmin && 
       <>
+      <ContextMenuSeparator />
         <ContextMenuSub>
           <ContextMenuSubTrigger>Set Story Points</ContextMenuSubTrigger>
           <ContextMenuSubContent>
@@ -161,7 +164,7 @@ const TaskEdit = ({ task }: Props) => {
           </ContextMenuSubContent>
         </ContextMenuSub>
       </>
-    )}
+    }
   </>
 }
 

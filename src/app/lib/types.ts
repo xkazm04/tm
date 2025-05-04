@@ -29,6 +29,11 @@ export interface Task {
 }
 
 export interface Column {
+  id: string; 
+  title: string; 
+}
+
+export interface Column {
   id: string;
   title: string;
   locked: boolean; 

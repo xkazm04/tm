@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { User } from '../lib/types';
-
+import { UserCreate } from '../lib/schemas';
 
 const apiClient = {
   // Users
@@ -20,7 +20,7 @@ const apiClient = {
     return response.json();
   },
 
-  createUser: async (user: User): Promise<User> => {
+  createUser: async (user: UserCreate): Promise<UserCreate> => {
     const response = await fetch('/api/users', {
       method: 'POST',
       headers: {
@@ -38,7 +38,7 @@ const apiClient = {
 
   updateUser: async ({ id, data }: { id: string; data: Partial<User> }): Promise<User> => {
     const response = await fetch(`/api/users/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -79,7 +79,7 @@ export function useUsers() {
   });
 
   const createUserMutation = useMutation({
-    mutationFn: (user: User) => apiClient.createUser(user),
+    mutationFn: (user: UserCreate) => apiClient.createUser(user),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
     },

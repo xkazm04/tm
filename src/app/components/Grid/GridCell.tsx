@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect, useCallback, useState } from 'react';
 import type { User, Task } from '../../lib/types';
 import { cn } from '../..//lib/utils';
-import { Star, Plus, Link as LinkIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Star, Plus, Link as LinkIcon, Github, CheckCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tooltip,
   TooltipContent,
@@ -15,14 +16,13 @@ import {
 } from "../ui/context-menu";
 import GridContextMenu from './GridContextMenu';
 import { getTaskBackground, getTaskBorder, getTechnologyIcon } from '@/app/helpers/gridVariables';
-
+import { useUsers } from '@/app/functions/user';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 interface GridCellProps {
   task: Task | undefined;
-  column: number;
+  column: string | number; 
   row: number;
   itemIndex: number; 
-  currentUser: User;
-  users: User[]; 
 }
 
 const itemVariants = {
@@ -38,15 +38,74 @@ const itemVariants = {
   }),
 };
 
+// UserAvatar component that shows the first letter of the user's name
+const UserAvatar = ({ userId }: { userId: string }) => {
+  const { users } = useUsers();
+  const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    if (users && Array.isArray(users) && userId) {
+      const foundUser = users.find(u => u.id === userId);
+      if (foundUser) {
+        setUser(foundUser);
+      }
+    }
+  }, [users, userId]);
+  
+  if (!user) return null;
+  
+  const initials = user.name ? user.name.charAt(0).toUpperCase() : '?';
+  
+  return (
+    <Tooltip>
+      <TooltipTrigger>
+        <Avatar className="h-5 w-5 bg-primary/10 border border-primary/20">
+          <AvatarFallback className="text-[10px] font-medium text-primary">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Assigned to: {user.name}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 
 export function GridCell({
   task,
   column,
   row,
   itemIndex,
-  currentUser,
-  users, 
 }: GridCellProps) {
+  const [copied, setCopied] = useState(false);
+  
+  // Generate a task reference ID - either use serial_id if available or generate one from id
+  const getTaskReference = useCallback(() => {
+    if (!task) return '';
+    if (task.serial_id) return task.serial_id;
+    // If serial_id isn't available yet, create a reference from the UUID
+    // Take first 8 characters from UUID
+    return task.id ? `TM-${task.id.substring(0, 8)}` : '';
+  }, [task]);
+  
+  // Copy task ID to clipboard
+  const copyTaskIdToClipboard = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!task) return;
+    
+    const taskRef = getTaskReference();
+    navigator.clipboard.writeText(taskRef).then(
+      () => {
+        setCopied(true);
+        // Reset the copied state after 3 seconds
+        setTimeout(() => setCopied(false), 3000);
+      },
+      () => console.error('Failed to copy task ID to clipboard')
+    );
+  }, [task, getTaskReference]);
 
   return (
     <motion.div
@@ -66,6 +125,13 @@ export function GridCell({
         >
           {task ? (
               <>
+              {/* User Avatar Overlay - Only for assigned tasks */}
+              {task.state !== 'new' && task.assigned_to_id && (
+                <div className="absolute z-10 -top-2 -right-2">
+                  <UserAvatar userId={task.assigned_to_id} />
+                </div>
+              )}
+
               <div className="text-sm font-medium text-foreground flex-grow overflow-hidden break-words px-1 pt-1">
                   {task.title}
               </div>
@@ -89,8 +155,46 @@ export function GridCell({
                       )}
                   </div>
 
-                  {/* Story points */}
+                  {/* Task metrics and actions */}
                   <div className="flex gap-1.5 items-center">
+                      {/* GitHub reference icon - only show for tasks with IDs */}
+                      {task.id && (
+                          <Tooltip>
+                              <TooltipTrigger 
+                                onClick={copyTaskIdToClipboard}
+                                className="cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring rounded p-0.5"
+                              >
+                                <AnimatePresence mode="wait">
+                                  {copied ? (
+                                    <motion.div
+                                      key="check"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                    >
+                                      <CheckCheck className="w-3.5 h-3.5 text-green-500" />
+                                    </motion.div>
+                                  ) : (
+                                    <motion.div
+                                      key="github"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                    >
+                                      <Github className="w-3.5 h-3.5 text-gray-400 hover:text-gray-300" />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{copied ? 'Copied!' : `Copy task ID: ${getTaskReference()}`}</p>
+                              </TooltipContent>
+                          </Tooltip>
+                      )}
+
+                      {/* Story points */}
                       {task.points !== undefined && task.points !== null && (
                           <Tooltip>
                               <TooltipTrigger>
@@ -116,9 +220,7 @@ export function GridCell({
         {/* Context Menu Content */}
         <GridContextMenu 
           task={task}
-          currentUser={currentUser}
-          users={users}
-          column={column}
+          col={column}
           row={row}
           />
 

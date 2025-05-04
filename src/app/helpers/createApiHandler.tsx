@@ -14,13 +14,9 @@ type ApiHandlerOptions = {
   unwrapData?: boolean; 
 };
 
-interface RequestContext {
-  params?: Record<string, string>;
-}
-
-interface SupabaseResponse<T = any> {
+interface SupabaseResponse<T = unknown> {
   data: T | null;
-  error: any | null;
+  error: Error | null;
 }
 
 /**
@@ -36,10 +32,10 @@ export function createApiHandler(
   method: HttpMethod,
   options: ApiHandlerOptions = { requireAuth: true, unwrapData: true }
 ) {
-  return async function handler(
-    req: NextRequest,
-    context?: RequestContext
-  ) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async function handler(req: NextRequest, ...args: any[]) {
+    const params = args[0]?.params || {};
+    
     if (options.requireAuth) {
       const { userId } = await auth();
       
@@ -51,7 +47,8 @@ export function createApiHandler(
       }
 
       try {
-        const resourceId = context?.params?.id;
+        const resourceId = params?.id as string | undefined;
+        
         let url = baseUrl;
         if (resourceId) {
           url = `${url}/${resourceId}`;
@@ -83,8 +80,18 @@ export function createApiHandler(
         
         const response = await fetch(url, fetchOptions);
         
-        // Parse the Supabase response, which should be in { data, error } format
-        const supabaseResponse: SupabaseResponse = await response.json();
+        // Handle non-JSON responses gracefully
+        let supabaseResponse: SupabaseResponse;
+        try {
+          supabaseResponse = await response.json();
+        } catch (err) {
+          console.error('Failed to parse response as JSON:', err);
+          const responseText = await response.text();
+          return NextResponse.json(
+            { error: `Failed to parse response: ${responseText}` },
+            { status: response.status }
+          );
+        }
         
         // Check if there's an error in the Supabase response
         if (supabaseResponse.error) {
@@ -96,16 +103,15 @@ export function createApiHandler(
         }
         
         // If unwrapData option is true, return just the data
-        // Otherwise return the whole Supabase response format
         if (options.unwrapData) {
           return NextResponse.json(supabaseResponse.data, { status: 200 });
         } else {
           return NextResponse.json(supabaseResponse, { status: 200 });
         }
-      } catch (error: any) {
-        console.error(`Error in ${method} ${baseUrl}${context?.params?.id ? '/' + context.params.id : ''}:`, error);
+      } catch (error: unknown) {
+        console.error(`Error in ${method} ${baseUrl}${params?.id ? '/' + params.id : ''}:`, error);
         return NextResponse.json(
-          { error: error.message }, 
+          { error: error instanceof Error ? error.message : String(error) }, 
           { status: 500 }
         );
       }

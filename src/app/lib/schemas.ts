@@ -1,33 +1,14 @@
-// These types mirror the Pydantic schemas defined in backend/schemas.py
-// They are useful for type safety when making API calls from the frontend.
-
-import type { TaskState, Technology } from './types'; // Import enums/types if needed
+//eslint-disable @typescript-eslint/no-empty-interface
+import { User, TaskState, Technology } from './types';
 
 // --- User Schemas ---
 
-export interface UserBase {
+export interface UserCreate {
   external_id: string;
   name?: string | null;
   role?: string | null;
   admin?: boolean;
   points?: number;
-}
-
-export interface UserCreate extends UserBase {
-  // No additional fields for creation in the backend schema
-}
-
-export interface UserUpdate {
-  external_id?: string | null;
-  name?: string | null;
-  role?: string | null;
-  admin?: boolean | null;
-  points?: number | null;
-}
-
-// Represents the full User object returned by the API (matches backend User schema)
-export interface User extends UserBase {
-  id: string; // UUID as string
 }
 
 // --- Task Schemas ---
@@ -41,10 +22,6 @@ export interface TaskBase {
   reference_url?: string | null;
   technology?: Technology | null;
   points?: number | null;
-}
-
-export interface TaskCreate extends TaskBase {
-   // No additional fields for creation in the backend schema
 }
 
 export interface TaskUpdate {

@@ -22,7 +22,6 @@ const AnimatedTasklist = () => {
     ];
 
     useEffect(() => {
-        // Set a timeout to show the checkmark after 5 seconds
         const timer = setTimeout(() => {
             setShowCheckmark(true);
         }, 3000);
@@ -53,7 +52,7 @@ const AnimatedTasklist = () => {
                             stiffness: 300,
                             damping: 60,
                             bounce: 0.5,
-                            duration: 0.5
+                            duration: 1
                         }}
                     >
                         <div className="absolute top-10 left-10 cursor-pointer 
@@ -70,7 +69,7 @@ const AnimatedTasklist = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 1 }}
                     className="text-green-200 w-full absolute top-[90%]
                     cursor-pointer hover:text-gray-400  transition-all ease-linear duration-300">
                     <MorphingText texts={texts} />

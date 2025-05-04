@@ -13,13 +13,13 @@ const apiClient = {
     return response.json();
   },
 
-  createCol: async (col: Column): Promise<Column> => {
+  createCol: async (title: string): Promise<Column> => {
     const response = await fetch('/api/columns', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(col),
+      body: JSON.stringify({ title }), // Wrap the title in an object
     });
     
     if (!response.ok) {
@@ -31,7 +31,7 @@ const apiClient = {
 
   updateCol: async ({ id, data }: { id: string; data: Partial<Column> }): Promise<Column> => {
     const response = await fetch(`/api/columns/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -39,7 +39,8 @@ const apiClient = {
     });
     
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} - ${errorText}`);
     }
     
     return response.json();
@@ -71,8 +72,9 @@ export function useCols() {
     queryFn: () => apiClient.getCols(),
   });
 
+  // Fixed createCol mutation to handle proper payload
   const createColMutation = useMutation({
-    mutationFn: (col: Column) => apiClient.createCol(col),
+    mutationFn: (title: string) => apiClient.createCol(title),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cols.all });
     },

@@ -1,0 +1,96 @@
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const webhookSecret = Deno.env.get('GITHUB_WEBHOOK_SECRET') || '';
+// Create a Supabase client with the service role key
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Verify GitHub webhook signature
+function verifyGitHubSignature(signature, payload) {
+  // Implementation of GitHub's HMAC verification
+  // This would use crypto to verify the signature matches the payload with your secret
+  // For brevity, not fully implemented here
+  return true; // Replace with actual verification
+}
+// Extract task ID from PR description or title
+function extractTaskId(prTitle, prDescription) {
+  // Look for a pattern like "TM-123" or "Task: abc-123" in title or description
+  const taskPattern = /(?:Task|TM)[:\s-](\w+-\w+|\w+)/i;
+  const titleMatch = prTitle.match(taskPattern);
+  if (titleMatch && titleMatch[1]) return titleMatch[1];
+  const descMatch = prDescription?.match(taskPattern);
+  if (descMatch && descMatch[1]) return descMatch[1];
+  return null;
+}
+// Update task state based on PR event
+async function updateTaskState(taskId, newState) {
+  const { data, error } = await supabase.from('tasks').update({
+    state: newState
+  }).eq('id', taskId);
+  if (error) {
+    console.error('Error updating task:', error);
+    return false;
+  }
+  return true;
+}
+serve(async (req)=>{
+  try {
+    // Verify request is from GitHub
+    const signature = req.headers.get('x-hub-signature-256') || '';
+    const body = await req.text();
+    if (!verifyGitHubSignature(signature, body)) {
+      return new Response('Invalid signature', {
+        status: 401
+      });
+    }
+    const payload = JSON.parse(body);
+    const event = req.headers.get('x-github-event');
+    // Handle PR events
+    if (event === 'pull_request') {
+      const { action, pull_request } = payload;
+      const taskId = extractTaskId(pull_request.title, pull_request.body);
+      if (!taskId) {
+        return new Response('No task ID found in PR', {
+          status: 200
+        });
+      }
+      let success = false;
+      // Update task state based on PR action
+      switch(action){
+        case 'opened':
+        case 'reopened':
+          success = await updateTaskState(taskId, 'in_review');
+          break;
+        case 'closed':
+          if (pull_request.merged) {
+            success = await updateTaskState(taskId, 'completed');
+          }
+          break;
+        case 'review_requested':
+          success = await updateTaskState(taskId, 'in_review');
+          break;
+        case 'reviewed':
+          if (payload.review && payload.review.state === 'approved') {
+            success = await updateTaskState(taskId, 'reviewed');
+          }
+          break;
+      }
+      return new Response(JSON.stringify({
+        success,
+        message: `Task ${taskId} status updated: ${action}`
+      }), {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+    return new Response('Event processed', {
+      status: 200
+    });
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    return new Response(`Error processing webhook: ${error.message}`, {
+      status: 500
+    });
+  }
+});

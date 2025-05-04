@@ -4,32 +4,16 @@ import { useState, useEffect } from 'react';
 import { useUser as useClerkUser } from '@clerk/nextjs';
 import { Header } from './Header/Header';
 import { TaskGrid } from './Grid/GridLayout';
-import { initialColumns } from '../lib/data';
-import type { User, TaskState } from '../lib/types';
+import type { User } from '../lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from "./ui/skeleton";
 import { useUsers as SupaUsers} from '../functions/user';
-
-interface Filters {
-  search: string;
-  user: string;
-  state: TaskState[];
-}
+import { useUserStore } from '../store/userStore';
 
 export function ClientPage() {
   const { isLoaded, isSignedIn, user: clerkUser } = useClerkUser();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
-
-  const [filters, setFilters] = useState<Filters>({
-    search: '',
-    user: '',
-    state: ['new', 'assigned', 'completed'],
-  });
-
-  const handleFilterChange = (newFilters: Filters) => {
-    setFilters(newFilters);
-  };
+  const { setCurrentUser } = useUserStore();
 
   const { users: allUsers, isLoading: isLoadingUsers, error: usersError } = SupaUsers();
   const { createUser, updateUser } = SupaUsers();
@@ -54,10 +38,9 @@ export function ClientPage() {
             external_id: clerkUser.id,
             name: clerkUser.fullName || clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress || 'Unknown',
             role: 'member', 
-            isAdmin: false,
+            admin: false,
             points: 0
           };
-          
           await createUser(newUser);
           
         } else {
@@ -67,7 +50,7 @@ export function ClientPage() {
             id: supabaseUser.id!,
             name: supabaseUser.name || 'Unknown',
             role: supabaseUser.role || 'member',
-            isAdmin: supabaseUser.isAdmin || false,
+            admin: supabaseUser.admin || false,
             points: supabaseUser.points || 0,
           });
           
@@ -88,6 +71,7 @@ export function ClientPage() {
     if (isLoaded && !isLoadingUsers) {
       syncUserWithSupabase();
     }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, isSignedIn, clerkUser, allUsers, isLoadingUsers, createUser, updateUser]);
 
 
@@ -159,25 +143,16 @@ export function ClientPage() {
     id: apiUser.id!,
     name: apiUser.name || 'Unknown',
     role: apiUser.role || 'member',
-    isAdmin: apiUser.isAdmin || false,
+    admin: apiUser.admin || false,
     points: apiUser.points || 0,
   }));
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <Header 
-        users={formattedUsers} 
-        onFilterChange={handleFilterChange} 
-        currentUser={currentUser}
-      />
+      <Header users={formattedUsers} />
       <ScrollArea className="flex-grow">
         <div className="p-4">
-          <TaskGrid
-            initialColumns={initialColumns}
-            users={formattedUsers}
-            filters={filters}
-            currentUser={currentUser}
-          />
+          <TaskGrid  />
         </div>
       </ScrollArea>
     </div>

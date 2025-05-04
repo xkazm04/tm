@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Task management app for hackathon-like events
 
-## Getting Started
+TBD demo
+## Features
+Simple and effective backlog management via large grid with tasks
 
-First, run the development server:
+- Admin functions for task management: State, Story Points, Categorization
+- Basic task workflow
+- Task completion overview
 
+
+## Architecture
+- UI: **NextJS**, Typescript, Tailwind 4.x with Shadcn components
+- Backend: **Supabase** table with Edge **functions**
+  
+## Run your own project locally
+### Client server
 ```bash
+git clone tbd
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+### Supabase
+
+
+#### Github webhook
+Optional feature to synchronize PR events with the app
+
+Github repo instructions
+1. Go to `Settings > Webhooks > Add webhook`
+2. Set the **Payload URL** to your **Supabase function URL**
+3. Set **Content type** to `application/json`
+4. Set **Secret** to the same value as ``GITHUB_WEBHOOK_SECRET`
+5. Select **events**: *Pull requests* and *Pull request reviews*
+
+Pull Request Guidelines
+- All PRs should be linked to a task using one of these methods:
+- Preferred: Include Task ID in PR Title
+```bash
+Format: `[TM-{id}] {brief description}`
+Example: `[TM-abc123] Add user filtering component`
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Alternative: Include Task ID in PR Description
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Impact on default workflow
+The system will automatically update task status based on PR events:
+- Creating a PR will change task status to "in review"  
+- Approving a PR will change status to "reviewed"
+- Merging a PR will change status to "completed"

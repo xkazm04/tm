@@ -1,9 +1,5 @@
-// Keep backend-compatible types separate if needed in the future
-// export type TaskStateBackend = 'new' | 'assigned' | 'completed' | 'reviewed';
-// export type TechnologyBackend = 'frontend' | 'backend' | 'llm';
 
-// Frontend types used by components like TaskGrid
-export type TaskState = 'new' | 'assigned' | 'completed' | 'reviewed';
+export type TaskState = 'new' | 'assigned' | 'in_review' | 'reviewed' | 'completed';
 export type Technology = 'frontend' | 'backend' | 'llm';
 
 export interface User {
@@ -11,30 +7,28 @@ export interface User {
   external_id?: string; 
   name: string;
   avatar?: string; 
-  isAdmin?: boolean; 
+  admin?: boolean; 
   points: number; 
   role?: string; 
 }
 
 export interface Task {
-  id: string;
+  id?: string;
   title: string; 
   state: string;
   assigned_to_id?: string;
-  col: number;
+  col?: number;
   row: number;
   reference_url?: string;
   technology?: Technology;
   points?: number;
+  col_id?: string;
+  serial_number?: number;
+  serial_id?: string;
 }
 
 export interface Column {
   id: string; 
-  title: string; 
-}
-
-export interface Column {
-  id: string;
-  title: string;
-  locked: boolean; 
+  title: string
+  order?: number;
 }

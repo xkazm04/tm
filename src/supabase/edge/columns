@@ -1,0 +1,67 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+Deno.serve(async (req)=>{
+  const supabaseClient = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_ANON_KEY'));
+  const url = new URL(req.url);
+  const method = req.method;
+  if (method === 'GET') {
+    const { data, error } = await supabaseClient.from('columns').select('*');
+    return new Response(JSON.stringify({
+      data,
+      error
+    }), {
+      status: 200
+    });
+  }
+  if (method === 'POST') {
+    const colData = await req.json();
+    // Fetch the current count of items in the columns table
+    const { count, error: countError } = await supabaseClient.from('columns').select('*', {
+      count: 'exact'
+    });
+    if (countError) {
+      return new Response(JSON.stringify({
+        error: countError.message
+      }), {
+        status: 400
+      });
+    }
+    const newOrderValue = count;
+    const { data, error } = await supabaseClient.from('columns').insert([
+      {
+        ...colData,
+        order: newOrderValue + 1
+      }
+    ]);
+    return new Response(JSON.stringify({
+      data,
+      error
+    }), {
+      status: 201
+    });
+  }
+  if (method === 'PUT') {
+    const colData = await req.json();
+    const id = url.pathname.split('/').pop(); // Retrieve id from URL
+    const { data, error } = await supabaseClient.from('columns').update(colData).eq('id', id);
+    return new Response(JSON.stringify({
+      data,
+      error
+    }), {
+      status: 200
+    });
+  }
+  if (method === 'DELETE') {
+    const id = url.pathname.split('/').pop(); // Retrieve id from URL
+    const { data, error } = await supabaseClient.from('columns').delete().eq('id', id);
+    return new Response(JSON.stringify({
+      data,
+      error
+    }), {
+      status: 200
+    });
+  }
+  return new Response('Method Not Allowed', {
+    status: 405
+  });
+});

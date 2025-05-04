@@ -32,7 +32,13 @@ const apiClient = {
     return response.json();
   },
 
+
   createTask: async (task: Task): Promise<Task> => {
+    if (typeof task.col === 'string') {
+      task.col_id = task.col;
+      delete task.col; 
+    }
+
     const response = await fetch('/api/tasks', {
       method: 'POST',
       headers: {
@@ -49,8 +55,14 @@ const apiClient = {
   },
 
   updateTask: async ({ id, data }: { id: string; data: Partial<Task> }): Promise<Task> => {
+    // Same column type handling
+    if (typeof data.col === 'string') {
+      data.col_id = data.col;
+      delete data.col;
+    }
+
     const response = await fetch(`/api/tasks/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -109,17 +121,39 @@ export function useTasks(filters?: { state?: string; assigned_to?: string }) {
   const updateTaskMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Task> }) => 
       apiClient.updateTask({ id, data }),
-    onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.tasks.detail(data.id!), data);
+    onSuccess: (updatedTask) => {
+      // Update the individual task in the cache
+      if (updatedTask && updatedTask.id) {
+        queryClient.setQueryData(queryKeys.tasks.detail(updatedTask.id), updatedTask);
+      }
+      
+      // Invalidate all task lists to ensure they refresh
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      
+      // If we have filters, also invalidate filtered queries
+      if (filters) {
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.tasks.filtered(filters)
+        });
+      }
     },
   });
 
   const deleteTaskMutation = useMutation({
     mutationFn: (id: string) => apiClient.deleteTask(id),
     onSuccess: (_, id) => {
+      // Remove the specific task from cache
       queryClient.removeQueries({ queryKey: queryKeys.tasks.detail(id) });
+      
+      // Invalidate all task lists
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      
+      // If we have filters, also invalidate filtered queries
+      if (filters) {
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.tasks.filtered(filters)
+        });
+      }
     },
   });
 

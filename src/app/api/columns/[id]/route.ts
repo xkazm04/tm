@@ -4,5 +4,5 @@ import { supaUrl } from '@/app/constants/urls';
 const SUPABASE_URL = `${supaUrl}/functions/v1/col-endpoint`;
 
 export const GET = createApiHandler(SUPABASE_URL, HttpMethod.GET);
-export const PATCH = createApiHandler(SUPABASE_URL, HttpMethod.PATCH);
+export const PUT = createApiHandler(SUPABASE_URL, HttpMethod.PUT, {requireAuth: true, unwrapData: true});
 export const DELETE = createApiHandler(SUPABASE_URL, HttpMethod.DELETE);

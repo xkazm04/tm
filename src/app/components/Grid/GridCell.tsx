@@ -84,8 +84,6 @@ export function GridCell({
   const getTaskReference = useCallback(() => {
     if (!task) return '';
     if (task.serial_id) return task.serial_id;
-    // If serial_id isn't available yet, create a reference from the UUID
-    // Take first 8 characters from UUID
     return task.id ? `TM-${task.id.substring(0, 8)}` : '';
   }, [task]);
   
@@ -120,9 +118,24 @@ export function GridCell({
           className={cn(
               "h-20 p-1.5 border rounded-md relative group cursor-pointer transition-colors duration-150 flex flex-col justify-between outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background", 
               task ? getTaskBackground(task) : "bg-background hover:bg-muted/30 focus-within:bg-muted/40", 
-              task ? getTaskBorder(task) : 'border-dashed border-border/50 focus-within:border-ring/40' 
-            )}
+              task ? getTaskBorder(task) : 'border-dashed border-border/50 focus-within:border-ring/40',
+              task?.priority ? "shadow-[0_0_10px_rgba(220,38,38,0.5)] dark:shadow-[0_0_15px_rgba(248,113,113,0.35)]" : ""
+          )}
         >
+          {task && task.priority && (
+            <motion.div 
+              className="absolute inset-0 rounded-md bg-red-500/10 pointer-events-none"
+              animate={{ 
+                opacity: [0.4, 0.7, 0.4], 
+              }}
+              transition={{ 
+                duration: 2, 
+                ease: "easeInOut", 
+                repeat: Infinity 
+              }}
+            />
+          )}
+          
           {task ? (
               <>
               {/* User Avatar Overlay - Only for assigned tasks */}

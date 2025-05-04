@@ -24,7 +24,6 @@ const GridContextMenu = ({ task, col, row }: Props) => {
             title: "New Task",
             state: "new",
             col_id: typeof col === 'string' ? col : undefined, 
-            col: typeof col === 'number' ? col : undefined, 
             row: row,
         };
         await createTask(newTask);

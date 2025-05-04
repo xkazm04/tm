@@ -32,9 +32,10 @@ export function createApiHandler(
   method: HttpMethod,
   options: ApiHandlerOptions = { requireAuth: true, unwrapData: true }
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //eslint-disable-next-line
   return async function handler(req: NextRequest, ...args: any[]) {
-    const params = args[0]?.params || {};
+    // Await the params object first
+    const params = args[0]?.params ? await args[0].params : {};
     
     if (options.requireAuth) {
       const { userId } = await auth();
@@ -47,6 +48,7 @@ export function createApiHandler(
       }
 
       try {
+        // Now it's safe to access params.id
         const resourceId = params?.id as string | undefined;
         
         let url = baseUrl;
@@ -62,7 +64,9 @@ export function createApiHandler(
           }
         }
 
-        const token = process.env.SERVICE_ROLE
+        const token = process.env.SERVICE_ROLE;
+        console.log('Service token available:', !!token);
+
         const headers = {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -74,11 +78,27 @@ export function createApiHandler(
         };
 
         if (method !== HttpMethod.GET && method !== HttpMethod.DELETE) {
-          const body = await req.json();
-          fetchOptions.body = JSON.stringify(body);
+          try {
+            const contentLength = req.headers.get('content-length');
+            if (contentLength && parseInt(contentLength) > 0) {
+              const body = await req.json();
+              fetchOptions.body = JSON.stringify(body);
+            } else {
+              fetchOptions.body = JSON.stringify({});
+            }
+          } catch (err) {
+            console.error('Failed to parse request body as JSON:', err);
+            return NextResponse.json(
+              { error: 'Invalid JSON in request body' },
+              { status: 400 }
+            );
+          }
         }
         
+        console.log(`Requesting: ${method} ${url}`);
+
         const response = await fetch(url, fetchOptions);
+        console.log(`Response status: ${response.status}`);
         
         // Handle non-JSON responses gracefully
         let supabaseResponse: SupabaseResponse;
@@ -92,7 +112,7 @@ export function createApiHandler(
             { status: response.status }
           );
         }
-        
+      
         // Check if there's an error in the Supabase response
         if (supabaseResponse.error) {
           console.error('Supabase returned an error:', supabaseResponse.error);
@@ -104,9 +124,36 @@ export function createApiHandler(
         
         // If unwrapData option is true, return just the data
         if (options.unwrapData) {
-          return NextResponse.json(supabaseResponse.data, { status: 200 });
+          try {            
+            let safeData;
+            // Handle the case where data is explicitly null/undefined
+            if (supabaseResponse.data === undefined || supabaseResponse.data === null) {
+              console.warn('Supabase response data was null or undefined, returning empty object');
+              safeData = {};
+            } else {
+              safeData = supabaseResponse.data;
+            }            
+            return NextResponse.json(safeData, { status: 200 });
+          } catch (err) {
+            console.error('Data is not JSON serializable:', err);
+            // Include error details but not the actual data which might be too large
+            return NextResponse.json(
+              { error: 'Response contained non-serializable data', details: String(err) },
+              { status: 500 }
+            );
+          }
         } else {
-          return NextResponse.json(supabaseResponse, { status: 200 });
+          try {
+            // Test if the entire response is JSON serializable
+            JSON.stringify(supabaseResponse);
+            return NextResponse.json(supabaseResponse, { status: 200 });
+          } catch (err) {
+            console.error('Response is not JSON serializable:', err);
+            return NextResponse.json(
+              { error: 'Response contained non-serializable data' },
+              { status: 500 }
+            );
+          }
         }
       } catch (error: unknown) {
         console.error(`Error in ${method} ${baseUrl}${params?.id ? '/' + params.id : ''}:`, error);

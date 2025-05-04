@@ -70,6 +70,7 @@ export function useCols() {
   const colsQuery = useQuery({
     queryKey: queryKeys.cols.all,
     queryFn: () => apiClient.getCols(),
+    staleTime: 30000, 
   });
 
   // Fixed createCol mutation to handle proper payload

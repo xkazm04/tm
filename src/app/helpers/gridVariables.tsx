@@ -1,10 +1,11 @@
 import { Task, Technology } from "../lib/types";
-import {Code2, Database, Brain } from 'lucide-react';
+import {Code2, Database, Brain, Gavel } from 'lucide-react';
 
 export const getTechnologyIcon = (technology?: Technology) => {
   switch (technology) {
     case 'frontend': return <Code2 className="w-4 h-4 text-blue-400" aria-label="Frontend" />;
     case 'backend': return <Database className="w-4 h-4 text-green-400" aria-label="Backend" />;
+    case 'fullstack': return <Gavel className="w-4 h-4 text-orange-400" aria-label="Fullstack" />;
     case 'llm': return <Brain className="w-4 h-4 text-purple-400" aria-label="LLM" />;
     default: return null;
   }

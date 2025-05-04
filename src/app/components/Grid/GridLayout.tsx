@@ -173,7 +173,7 @@ export function TaskGrid() {
                     // First try to match by col_id (new approach)
                     (t.col_id === column.id || 
                     // Then fall back to the old approach (numeric position)
-                    (t.col_id === undefined && typeof t.col === 'number' && t.col === colIndex)) && 
+                    (t.col_id === undefined)) && 
                     t.row === row
                   );
                   

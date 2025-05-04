@@ -76,6 +76,7 @@ export function useUsers() {
   const usersQuery = useQuery({
     queryKey: queryKeys.users.all,
     queryFn: () => apiClient.getUsers(),
+    staleTime: 30000, 
   });
 
   const createUserMutation = useMutation({
@@ -121,6 +122,7 @@ export function useUser(id: string) {
   return useQuery({
     queryKey: queryKeys.users.detail(id),
     queryFn: () => apiClient.getUser(id),
-    enabled: !!id,// Only run if id is provided
+    enabled: !!id,
+    staleTime: 30000, 
   });
 }

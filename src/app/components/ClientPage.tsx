@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUser as useClerkUser } from '@clerk/nextjs';
 import { Header } from './Header/Header';
 import { TaskGrid } from './Grid/GridLayout';
@@ -15,9 +15,9 @@ export function ClientPage() {
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const { setCurrentUser } = useUserStore();
 
-  const { users: allUsers, isLoading: isLoadingUsers, error: usersError } = SupaUsers();
-  const { createUser, updateUser } = SupaUsers();
-  
+  const { users: allUsers, isLoading: isLoadingUsers, error: usersError, createUserAsync, updateUserAsync } = SupaUsers();
+  const hasCreatedUser = useRef(false);
+
   useEffect(() => {
     async function syncUserWithSupabase() {
       if (!isLoaded || !isSignedIn || !clerkUser) {
@@ -25,45 +25,52 @@ export function ClientPage() {
         return;
       }
 
-      try {
-        if (!Array.isArray(allUsers)) {
-          console.log("Users data not yet available as an array, waiting...");
-          return;
-        }
+      if (!Array.isArray(allUsers)) {
+        console.log("Users data not yet available as an array, waiting...");
+        return;
+      }
 
-        const existingUsers = allUsers.filter(user => user.external_id === clerkUser.id);
-        
-        if (existingUsers.length === 0) {
-          const newUser = {
-            external_id: clerkUser.id,
-            name: clerkUser.fullName || clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress || 'Unknown',
-            role: 'member', 
-            admin: false,
-            points: 0
-          };
-          await createUser(newUser);
-          
-        } else {
-          const supabaseUser = existingUsers[0];
-          
-          setCurrentUser({
-            id: supabaseUser.id!,
-            name: supabaseUser.name || 'Unknown',
-            role: supabaseUser.role || 'member',
-            admin: supabaseUser.admin || false,
-            points: supabaseUser.points || 0,
-          });
-          
-          if (supabaseUser.name !== clerkUser.fullName && clerkUser.fullName) {
-            await updateUser({ 
-              id: supabaseUser.id!, 
-              data: { name: clerkUser.fullName } 
+      const existingUsers = allUsers.filter(user => user.external_id === clerkUser.id);
+
+      if (existingUsers.length === 0 && !hasCreatedUser.current) {
+        hasCreatedUser.current = true; // Prevent repeated creation attempts
+        const newUser = {
+          external_id: clerkUser.id,
+          name: clerkUser.fullName || clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress || 'Unknown',
+          role: 'member',
+          admin: false,
+          points: 0
+        };
+        try {
+          await createUserAsync(newUser);
+        } catch (error) {
+          console.error('Error creating user in Supabase:', error);
+        } finally {
+          setIsLoadingUser(false);
+        }
+        return;
+      }
+
+      if (existingUsers.length > 0) {
+        const supabaseUser = existingUsers[0];
+        setCurrentUser({
+          id: supabaseUser.id!,
+          name: supabaseUser.name || 'Unknown',
+          role: supabaseUser.role || 'member',
+          admin: supabaseUser.admin || false,
+          points: supabaseUser.points || 0,
+        });
+
+        if (supabaseUser.name !== clerkUser.fullName && clerkUser.fullName) {
+          try {
+            await updateUserAsync({
+              id: supabaseUser.id!,
+              data: { name: clerkUser.fullName }
             });
+          } catch (error) {
+            console.error('Error updating user in Supabase:', error);
           }
         }
-      } catch (error) {
-        console.error('Error syncing user with Supabase:', error);
-      } finally {
         setIsLoadingUser(false);
       }
     }
@@ -72,7 +79,7 @@ export function ClientPage() {
       syncUserWithSupabase();
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, isSignedIn, clerkUser, allUsers, isLoadingUsers, createUser, updateUser]);
+  }, [isLoaded, isSignedIn, clerkUser, allUsers, isLoadingUsers, createUserAsync, updateUserAsync, setCurrentUser]);
 
 
   if (isLoadingUser || !isLoaded || isLoadingUsers) {

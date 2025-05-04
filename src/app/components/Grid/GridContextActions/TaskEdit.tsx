@@ -16,7 +16,7 @@ type Props = {
 
 type RowProps = {
   type: string;
-  value: string | number;
+  value: string | number | boolean;
   label: string;
 }
 
@@ -24,7 +24,7 @@ const TaskEdit = ({ task }: Props) => {
   const { updateTask } = useTasks();
   const { currentUser } = useUserStore();
 
-  const handleTaskUpdate = async (name: string, value: string | number) => {
+  const handleTaskUpdate = async (name: string, value: string | number | boolean) => {
     try {
       const data: Partial<Task> = {
         [name]: value
@@ -129,13 +129,14 @@ const TaskEdit = ({ task }: Props) => {
       }}>
       Edit Reference Link
     </ContextMenuItem>
+    <ContextMenuItem onSelect={() => handleTaskUpdate('priority', !task.priority)}>
+      {task.priority ? 'Remove Priority' : 'Set as Priority'}
+    </ContextMenuItem>
 
     <ContextMenuSeparator />
     </>}
 
     {renderStateTransitionOptions()}
-
-    
 
     {/* Admin/assigned user options */}
     {isAdmin && 
@@ -158,6 +159,7 @@ const TaskEdit = ({ task }: Props) => {
           <ContextMenuSubContent>
             <ContextMenuItem onSelect={() => handleTaskUpdate('technology', 'frontend')}>Frontend</ContextMenuItem>
             <ContextMenuItem onSelect={() => handleTaskUpdate('technology', 'backend')}>Backend</ContextMenuItem>
+            <ContextMenuItem onSelect={() => handleTaskUpdate('technology', 'fullstack')}>Fullstack</ContextMenuItem>
             <ContextMenuItem onSelect={() => handleTaskUpdate('technology', 'llm')}>LLM</ContextMenuItem>
             <ContextMenuSeparator />
             <ContextMenuItem onSelect={() => handleTaskUpdate('technology', '')}>Clear Technology</ContextMenuItem>

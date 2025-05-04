@@ -11,6 +11,9 @@
   "dependencies": {
     "@clerk/nextjs": "^6.18.5",
     "@clerk/themes": "^2.2.40",
+    "@copilotkit/react-core": "^1.8.9",
+    "@copilotkit/react-ui": "^1.8.9",
+    "@copilotkit/runtime": "^1.8.9",
     "@radix-ui/react-avatar": "^1.1.7",
     "@radix-ui/react-context-menu": "^2.2.12",
     "@radix-ui/react-scroll-area": "^1.2.6",

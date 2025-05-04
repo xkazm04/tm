@@ -1,6 +1,6 @@
 
 export type TaskState = 'new' | 'assigned' | 'in_review' | 'reviewed' | 'completed';
-export type Technology = 'frontend' | 'backend' | 'llm';
+export type Technology = 'frontend' | 'backend' | 'llm' | 'fullstack';
 
 export interface User {
   id: string; 
@@ -17,7 +17,6 @@ export interface Task {
   title: string; 
   state: string;
   assigned_to_id?: string;
-  col?: number;
   row: number;
   reference_url?: string;
   technology?: Technology;
@@ -25,6 +24,7 @@ export interface Task {
   col_id?: string;
   serial_number?: number;
   serial_id?: string;
+  priority?: boolean;
 }
 
 export interface Column {

@@ -34,11 +34,6 @@ const apiClient = {
 
 
   createTask: async (task: Task): Promise<Task> => {
-    if (typeof task.col === 'string') {
-      task.col_id = task.col;
-      delete task.col; 
-    }
-
     const response = await fetch('/api/tasks', {
       method: 'POST',
       headers: {
@@ -55,12 +50,6 @@ const apiClient = {
   },
 
   updateTask: async ({ id, data }: { id: string; data: Partial<Task> }): Promise<Task> => {
-    // Same column type handling
-    if (typeof data.col === 'string') {
-      data.col_id = data.col;
-      delete data.col;
-    }
-
     const response = await fetch(`/api/tasks/${id}`, {
       method: 'PUT',
       headers: {
@@ -108,6 +97,7 @@ export function useTasks(filters?: { state?: string; assigned_to?: string }) {
   const tasksQuery = useQuery({
     queryKey: queryKeys.tasks.filtered(filters),
     queryFn: () => apiClient.getTasks(filters),
+    staleTime: 30000,
   });
 
   const createTaskMutation = useMutation({
@@ -177,5 +167,6 @@ export function useTask(id: string) {
     queryKey: queryKeys.tasks.detail(id),
     queryFn: () => apiClient.getTask(id),
     enabled: !!id, 
+    staleTime: 30000, 
   });
 }

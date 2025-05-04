@@ -1,8 +1,10 @@
 "use client";
 import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/nextjs";
-import { ClientPage } from "./components/ClientPage";
-import AnimatedTasklist from "./components/animations/AnimatedTasklist";
+import dynamic from 'next/dynamic';
 import { DoorClosedIcon } from "lucide-react";
+
+const ClientPage = dynamic(() => import("./components/ClientPage").then(mod => mod.ClientPage), { ssr: false });
+const AnimatedTasklist = dynamic(() => import("./components/animations/AnimatedTasklist"), { ssr: false });
 
 export default function Home() {
 	return (

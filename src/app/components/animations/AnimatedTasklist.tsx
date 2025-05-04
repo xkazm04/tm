@@ -18,7 +18,7 @@ const AnimatedTasklist = () => {
     const texts = [
         "Welcome",
         "To",
-        "TaskMaster",
+        "TaskMajster",
     ];
 
     useEffect(() => {

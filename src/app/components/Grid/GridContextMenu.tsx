@@ -43,9 +43,12 @@ const GridContextMenu = ({ task, col, row }: Props) => {
                     </>}
                 </>
             ) : (
-                <ContextMenuItem onSelect={() => handleCreateTask(col, row)}>
-                    Create New Task Here
-                </ContextMenuItem>
+                <>
+                {isAdmin && 
+                    <ContextMenuItem onSelect={() => handleCreateTask(col, row)}>
+                        Create New Task Here
+                    </ContextMenuItem>}
+                </>
             )}
         </ContextMenuContent>
     </>

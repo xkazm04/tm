@@ -45,10 +45,14 @@ const GridContextMenu = ({ task, col, row }: Props) => {
                 </>
             ) : (
                 <>
-                {isAdmin && 
+                {isAdmin ?
                     <ContextMenuItem onSelect={() => handleCreateTask(col, row)}>
                         Create New Task Here
-                    </ContextMenuItem>}
+                    </ContextMenuItem>
+                    : <ContextMenuItem disabled>
+                        Only admin can create a new task
+                    </ContextMenuItem>    
+                }
                 </>
             )}
         </ContextMenuContent>

@@ -163,7 +163,9 @@ export function GridCell({
                                       <LinkIcon className="w-3.5 h-3.5 text-blue-400 hover:text-blue-300" />
                                   </a>
                               </TooltipTrigger>
-                              <TooltipContent><p>{task.reference_url}</p></TooltipContent>
+                              <TooltipContent><p>{task.reference_url}
+                                {task.clickup_sync && <span>- synced with Clickup</span>}
+                                </p></TooltipContent>
                           </Tooltip>
                       )}
                   </div>

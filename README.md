@@ -1,17 +1,22 @@
-Task management app for hackathon-like events
+Task management app for a hackathon event. The goal is to manage work without communication overhaul to 5-10 devs never met before, with 100+ tasks broke down into feature streams.
 
-TBD demo
+- Team lead is able to effectively create new tasks and manage project
+- Dev is able to quickly assign free task based on his skillset and interest
+
+![demo screen](./public/demo.png)
+
 ## Features
 Simple and effective backlog management via large grid with tasks
 
-- Admin functions for task management: State, Story Points, Categorization
-- Basic task workflow
-- Task completion overview
-
+- Basic task state workflow and attributes for easy categorization
+- Chat to manage large amount of tasks using CopilotKit
+- Automatically changes state via Github PR activities
+- Sync tasks into Clickup to provide more details about tasks
 
 ## Architecture
 - UI: **NextJS**, Typescript, Tailwind 4.x with Shadcn components
 - Backend: **Supabase** table with Edge **functions**
+- Integrations: **Github** Webhooks to sync PRs, **Clickup** task management API
   
 ## Run your own project locally
 ### Client server
@@ -21,8 +26,7 @@ npm install
 npm run dev
 ```
 ### Supabase
-
-
+-- TBD provide latest scripts to create tables and edge functions
 #### Github webhook
 Optional feature to synchronize PR events with the app
 
@@ -48,3 +52,9 @@ The system will automatically update task status based on PR events:
 - Creating a PR will change task status to "in review"  
 - Approving a PR will change status to "reviewed"
 - Merging a PR will change status to "completed"
+
+### Clickup
+#### Setup workspace 
+- TBD How to Clickup app
+#### Mapping Clickup structure with TaskMajster columns
+- TBD How to API key, mapping lists with TaskMajster columns

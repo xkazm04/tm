@@ -13,7 +13,7 @@ export interface User {
 }
 
 export interface Task {
-  id?: string;
+  id: string;
   title: string; 
   state: string;
   assigned_to_id?: string;
@@ -25,10 +25,20 @@ export interface Task {
   serial_number?: number;
   serial_id?: string;
   priority?: boolean;
+  clickup_sync?: boolean;
 }
+
+export type NewTask = {
+    title: string;
+    state: string;
+    col_id?: string | number; 
+    row: number;
+}
+
 
 export interface Column {
   id: string; 
   title: string
   order?: number;
+  clickup_list_id?: string;
 }

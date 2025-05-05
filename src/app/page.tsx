@@ -2,7 +2,8 @@
 import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/nextjs";
 import dynamic from 'next/dynamic';
 import { DoorClosedIcon } from "lucide-react";
-
+import { CopilotKit } from "@copilotkit/react-core";
+import "@copilotkit/react-ui/styles.css"; 
 const ClientPage = dynamic(() => import("./components/ClientPage").then(mod => mod.ClientPage), { ssr: false });
 const AnimatedTasklist = dynamic(() => import("./components/animations/AnimatedTasklist"), { ssr: false });
 
@@ -29,7 +30,9 @@ export default function Home() {
 						</button>
 					</SignOutButton>
 				</div>
-				<ClientPage />
+				 <CopilotKit publicApiKey={`${process.env.NEXT_PUBLIC_COPILOT_API_KEY}`}>
+					<ClientPage />
+				</CopilotKit>
 			</SignedIn>
 		</>
 	);

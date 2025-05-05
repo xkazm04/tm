@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Task } from '../lib/types';
+import { NewTask, Task } from '../lib/types';
 
 const apiClient = {
   getTasks: async (filters?: { state?: string; assigned_to?: string }): Promise<Task[]> => {
@@ -33,7 +33,7 @@ const apiClient = {
   },
 
 
-  createTask: async (task: Task): Promise<Task> => {
+  createTask: async (task: NewTask): Promise<Task> => {
     const response = await fetch('/api/tasks', {
       method: 'POST',
       headers: {
@@ -101,7 +101,7 @@ export function useTasks(filters?: { state?: string; assigned_to?: string }) {
   });
 
   const createTaskMutation = useMutation({
-    mutationFn: (task: Task) => apiClient.createTask(task),
+    mutationFn: (task: NewTask) => apiClient.createTask(task),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
     },

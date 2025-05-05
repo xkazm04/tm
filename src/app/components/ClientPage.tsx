@@ -9,6 +9,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from "./ui/skeleton";
 import { useUsers as SupaUsers} from '../functions/user';
 import { useUserStore } from '../store/userStore';
+import CopilotComponent from './copilotkit/CopilotComponents';
 
 export function ClientPage() {
   const { isLoaded, isSignedIn, user: clerkUser } = useClerkUser();
@@ -162,6 +163,7 @@ export function ClientPage() {
           <TaskGrid  />
         </div>
       </ScrollArea>
+      <CopilotComponent />
     </div>
   );
 }

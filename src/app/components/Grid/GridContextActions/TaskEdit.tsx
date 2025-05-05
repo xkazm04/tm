@@ -40,7 +40,7 @@ const TaskEdit = ({ task }: Props) => {
       }
 
       if (!task.id) return
-      await updateTask({
+      updateTask({
         id: task.id,
         data: data,
       });

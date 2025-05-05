@@ -50,7 +50,7 @@ const CopilotComponent = () => {
             return;
         }
 
-        if (!process.env.NEXT_PUBLIC_CLERK_CUSTOM_ID) {
+        if (!process.env.NEXT_PUBLIC_CLICKUP_CUSTOM_ID) {
             console.log("Cannot sync task - no custom field ID found");
             return;
         }
@@ -61,7 +61,7 @@ const CopilotComponent = () => {
             priority: task.priority && 1 || 3,
             custom_fields: [
                 {
-                    id: process.env.NEXT_PUBLIC_CLERK_CUSTOM_ID, value: task.serial_id || ""
+                    id: process.env.NEXT_PUBLIC_CLICKUP_CUSTOM_ID, value: task.serial_id || ""
                 },
             ],
         })

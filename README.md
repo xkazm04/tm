@@ -5,6 +5,9 @@ Task management app for a hackathon event. The goal is to manage work without co
 
 ![demo screen](./public/demo.png)
 
+## Demo
+Link to the [Demo](https://taskmajster.netlify.app).
+
 ## Features
 Simple and effective backlog management via large grid with tasks
 
